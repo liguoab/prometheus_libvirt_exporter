@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 import sys
 import argparse
 import libvirt
@@ -11,8 +12,10 @@ from xml.etree import ElementTree
 parser = argparse.ArgumentParser(description='libvirt_exporter scrapes domains metrics from libvirt daemon')
 parser.add_argument('-si','--scrape_interval', help='scrape interval for metrics in seconds', default= 5)
 parser.add_argument('-uri','--uniform_resource_identifier', help='Libvirt Uniform Resource Identifier', default= "qemu:///system")
+parser.add_argument('-lfp','--libvirt_file_path', help='Libvirt Socket File Path', default= "/var/run/libvirt/libvirt-sock")
 args = vars(parser.parse_args())
 uri = args["uniform_resource_identifier"]
+libvirt_file_path = args["libvirt_file_path"]
 
 
 def connect_to_uri(uri):
@@ -177,7 +180,11 @@ def job(uri, g_dict, scheduler):
 
 
 def main():
-
+    while not os.path.exists(libvirt_file_path):
+        print('File:' + libvirt_file_path + ' not found! Sleep 60s')
+        time.sleep(60)
+        continue
+    
     start_http_server(9177)
 
     g_dict = {}
